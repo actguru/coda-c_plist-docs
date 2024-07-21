@@ -197,9 +197,9 @@
        get the retain count with countO(), and unlike Objective-C, this value
        is an accurate value, because there is no garbage collection.
 
-       The 'cleanO' attribute, used with a variable, cause the variable to be
-       freeO()'ed  when  it goes out of scope.  This attribute also makes the
-       variable 'const' preventing changes.  For example:
+       The 'cleanO' attribute, used with a variable, causes the  variable  to
+       be  freeO()'ed  when  it goes out of scope.  This attribute also makes
+       the variable 'const' preventing changes.  For example:
 
        {  Bool flag=Bool_Value(1);
           printf("value is %d\n",*flag);
@@ -263,17 +263,18 @@
        object  by  address equality.  The function 'rawAddress' allows direct
        access to the internal array, but this address  becomes  invalid  with
        any Array modification.  When creating a new Array with 'NewBlock' the
-       'proto' should be 0 (reserved for future use).
+       'proto' should be 0 (reserved for future use).  The function  'subInt'
+       returns NULL for out-of-bounds.
 
 
        Pointer
 
           Pointer Pointer_Value(pointer value);
           void pointer_sort(pointer base,int nel,void *IfunVVC,void *context);
-          // ex: pointer_sort(list,Pointer_count(list),strcmp);
+          // ex: pointer_sort(list,Pointer_count(list),strcmp,0);
 
-       Pointer class objects are used for programming support.   For  example
-       Dictionary_AllKeys()  returns  a  C-arrayed list of pointers, that can
+       Pointer  class  objects are used for programming support.  For example
+       Dictionary_AllKeys() returns a C-arrayed list of  pointers,  that  can
        easily be sorted.
 
        Keyword
@@ -281,8 +282,8 @@
           struct Keyword_ { Obj item; char word[0]; };
           Keyword Keyword_Value(char *word,Obj item);
 
-       The Keyword class exposes it's internal structure because  it  may  be
-       used  to create Keyword objects or access interal Dictionary elements,
+       The  Keyword  class  exposes it's internal structure because it may be
+       used to create Keyword objects or access internal Dictionary elements,
        that are not objects!
 
        Dictionary
@@ -302,8 +303,8 @@
              printf("Key=%s, item=%p\n",key->word,key->item);
              }
 
-       The Dictionary class objects are referenced by a key string, which  is
-       copied  into  the  dictionary.   This class follows the same rules for
+       The  Dictionary class objects are referenced by a key string, which is
+       copied into the dictionary.  This class follows  the  same  rules  for
        retain retaining contained objects as Array.
 
 
@@ -313,9 +314,10 @@
 
           Obj alocO(int size);
 
-       Void class objects are 'classless' objects, they allow arbitrary  data
-       to  work as objects, so they can be contained in Dictionary and Array.
+       Void  class objects are 'classless' objects, they allow arbitrary data
+       to work as objects, so they can be contained in Dictionary and  Array.
        They are created with alocO().
+
 
        Other Stuff
 
@@ -330,10 +332,16 @@
              // A new object from a string or NULL w/ OError().
              // The new objects will have the same class as 'cobj'.
 
-       Each Coda-C class has a class object named:  Class_(class  name)  like
-       Class_Real.   These  are not functional objects, but can be used where
-       only  the  class  of  an  object   is   required,   like   'cobj'   in
+       Each  Coda-C  class  has a class object named: Class_(class name) like
+       Class_Real.  These are not functional objects, but can be  used  where
+       only   the   class   of   an   object  is  required,  like  'cobj'  in
        obj_FromString().
+
+          void PList_Binary(void); // Forward ref to Binary plist plugin library
+
+       The function PList_Binary() is not defined in this library, but if you
+       have  a Binary plugin, calling or referencing it will cause the linker
+       to include the plugin.
 
        Diagnostics
 
@@ -341,13 +349,13 @@
           void codac_versions(void); // report version information to <stdout>
           #define Object_Leaks() ... // macro for leak testing
 
-       The  ToContainer() function tries to make a human readable string from
-       an object, mostly for programming purposes.  It is  most  useful  with
+       The ToContainer() function tries to make a human readable string  from
+       an  object,  mostly  for programming purposes.  It is most useful with
        containers.
 
-       When  the Object_Leaks() macro is inserted in a function, it creates a
-       variable on that line, that when it goes out of scope will report  the
-       change  in total object count. This process is not perfect, but it can
+       When the Object_Leaks() macro is inserted in a function, it creates  a
+       variable  on that line, that when it goes out of scope will report the
+       change in total object count. This process is not perfect, but it  can
        help to hunt down leaking objects.  For example:
 
           #include "coda-c_plist.h"
@@ -383,7 +391,7 @@
        The codalist XML format differs from plist XML format in the following
        ways:
 
-          1. Strings are C strings.
+          1. Strings are C strings and are not required to be UTF-8.
           2. Arrays may contain <null>'s.
           3. C style comments are allowed but not preserved. //
           4. <uid> has a native format.
