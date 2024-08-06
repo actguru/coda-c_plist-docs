@@ -1,4 +1,4 @@
-// Stephen M. Jones // 07/20/2024
+// Stephen M. Jones // 08/05/2024
 
 // Example program to: "Report the number of times each word from <stdin> is used."
 
@@ -28,9 +28,9 @@ int main() {
 		Huge count=key->item;
 		printf("%s=%lld\n",key->word,*count);
 		}
-	char *ofile="words.plist";
+	char *ofile="words.json";
 	printf("Saving: %s\n",ofile);
-	if (!PList_save(ofile,dict,PLIST_Apple))
+	if (!Json_save(ofile,dict,PLIST_Json|JSON_Pretty|JSON_NoEscapeSlash))
 		printf(">> Error: %s\n",OError());
   	}
   }

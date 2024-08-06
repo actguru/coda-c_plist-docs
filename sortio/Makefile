@@ -1,10 +1,10 @@
-# 07/17/2024
+# 08/05/2024
+
 UNAME := $(shell uname)
 OSCF =
 CC = gcc
 
 ifeq ($(UNAME), Darwin)
-$(info Make for APPLE, uname = $(UNAME))
 CC = clang
 OSCF = -mmacosx-version-min=10.8 -arch x86_64
 endif
@@ -15,18 +15,21 @@ OFILES = $(CFILES:.c=.o)
 
 CFLAGS = $(OSCF) -fPIC -std=gnu17 -g0 -O1 -Wall -Wfatal-errors
 
-default: runtest
+default: test
 
 TESTER = sortio
 
 $(TESTER): $(CFILES)
-	$(CC) -std=gnu17 -g0 -Wfatal-errors -Wall -O1 $(CFILES) -lcoda-c_plist -o $(TESTER) -lm
+	$(CC)  $(CFLAGS) $(CFILES) -lcoda-c_plist -o $(TESTER) -lm
 
-runtest: $(TESTER) # manual:  make runtest
+test: $(TESTER)
 	./$(TESTER) < $(CFILES)
 
-clean:
-	rm -f $(OFILES) $(TESTER) $(TESTER).exe # DOS
+test2: $(TESTER)
+	printf "a\n1\n5\n3\n7\nX\nY\nZ\nb\nc" | ./$(TESTER)
 
-.PHONY:  default clean runtest
+clean:
+	rm -f $(OFILES) $(TESTER) $(TESTER).exe
+
+.PHONY:  default clean test test2
 
