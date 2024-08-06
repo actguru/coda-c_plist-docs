@@ -7,13 +7,16 @@ int demo2() {
 	Char string=Char_Value("A string.");
 
 	printf("Apple XML Property List\n");
-	PList_toStream(stdout,string,PLIST_Apple);
+	Json_toStream(stdout,string,PLIST_Apple);
 	printf("-------------------------------------------------------\n");
 	printf("Apple XML Property List without headers & version\n");
-	PList_toStream(stdout,string,PLIST_Apple | PLIST_NoEncoding | PLIST_NoDoctype | PLIST_NoPVersion);
+	Json_toStream(stdout,string,PLIST_Apple | PLIST_NoEncoding | PLIST_NoDoctype | PLIST_NoPVersion);
 	printf("-------------------------------------------------------\n");
 	printf("Coda-C XML Property List\n");
-	PList_toStream(stdout,string,0);
+	Json_toStream(stdout,string,PLIST_Coda_C);
+	printf("-------------------------------------------------------\n");
+	printf("JSON Property List\n");
+	Json_toStream(stdout,string,PLIST_Json|JSON_Pretty);
 	printf("-------------------------------------------------------\n");
 
 	return(0);

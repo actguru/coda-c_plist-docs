@@ -8,7 +8,7 @@ int demo9() {
 
 	char *file="plist8.plist";
 	printf("Loading: %s\n",file);
-	Dictionary plist8=PList_Load(file,0);
+	Dictionary plist8=Json_Load(file,0);
 	if (!plist8) quit("Error loading file(%s): %s\n",file,OError());
 
 		{ // block reduces scope of cleanO attribute
@@ -18,7 +18,7 @@ int demo9() {
 		freeO(plist8); // destroy loaded plist
 
 		char *ofile="plist9.plist"; // same as plist5, I hope!
-		if (!PList_save(ofile,dict,PLIST_Apple))
+		if (!Json_save(ofile,dict,PLIST_Json|JSON_Pretty|JSON_NoEscapeSlash))
 			quit("Error saving file(%s): %s\n",ofile,OError());
 		printf("Saved modified plist to file: %s\n",ofile);
 

@@ -6,7 +6,7 @@ int demo4() {
 
 	char *file="plist1.plist";
 	printf("Loading: %s\n",file);
-	Dictionary dict=PList_Load(file,0);
+	Dictionary dict=Json_Load(file,0);
 	if (!dict) quit("Error loading file(%s): %s\n",file,OError());
 
 	for(Keyword key=Dictionary_scan(dict);key;key=Dictionary_next(key)) {

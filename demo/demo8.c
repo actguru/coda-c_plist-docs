@@ -6,17 +6,17 @@ int demo8() {
 
 	char *file="plist1.plist";
 	printf("Loading: %s\n",file);
-	Dictionary plist1=PList_Load(file,0);
+	Dictionary plist1=Json_Load(file,0);
 	if (!plist1) quit("Error loading file(%s): %s\n",file,OError());
 
 	char *file5="plist5.plist";
 	printf("Loading: %s\n",file5);
-	Dictionary plist5=PList_Load(file5,0);
+	Dictionary plist5=Json_Load(file5,0);
 	if (!plist5) quit("Error loading file(%s): %s\n",file5,OError());
 
 	char *file7="plist7.plist";
 	printf("Loading: %s\n",file7);
-	Dictionary plist7=PList_Load(file7,0);
+	Dictionary plist7=Json_Load(file7,0);
 	if (!plist7) quit("Error loading file(%s): %s\n",file7,OError());
 
 	Dict dict=newO(Dict);
@@ -26,7 +26,7 @@ int demo8() {
 
 
 	char *ofile="plist8.plist";
-	if (!PList_save(ofile,dict,PLIST_Apple))
+	if (!Json_save(ofile,dict,PLIST_Apple))
 		quit("Error saving file(%s): %s\n",ofile,OError());
 	printf("Saved modified plist to file: %s\n",ofile);
 

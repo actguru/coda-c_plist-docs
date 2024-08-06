@@ -7,7 +7,7 @@ int demo5() {
 
 	char *ifile="plist1.plist";
 	printf("Loading: %s\n",ifile);
-	Dictionary dict=PList_Load(ifile,0); // new object
+	Dictionary dict=Json_Load(ifile,0); // new object
 	if (!dict) quit("Error loading file(%s): %s\n",ifile,OError());
 
 	Dict_set(dict,"Rate",Real_Value(9876.54321)); // oops should have Dict_take() here!!
@@ -19,14 +19,10 @@ int demo5() {
 	freeO(magenta); // release
 
 	char *ofile="plist5.plist";
-	if (!PList_save(ofile,dict,PLIST_Apple))
+	if (!Json_save(ofile,dict,PLIST_Apple))
 		quit("Error saving file(%s): %s\n",ofile,OError());
 	printf("Saved modified plist to file: %s\n",ofile);
-
-	printf("\n");
-	PList_toStream(stdout,dict,PLIST_Apple | PLIST_NoEncoding | PLIST_NoDoctype);
-
-	printf("\n");
+	Json_toStream(stdout,dict,PLIST_Json | JSON_Pretty);
 	printf("finish testing\n");
 
 // **** LEAK TESTING NOTES ****

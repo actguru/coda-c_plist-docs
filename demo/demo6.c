@@ -12,7 +12,7 @@ int demo6() {
 
 	char *ifile="plist1.plist";
 	printf("Loading: %s\n",ifile);
-	Dictionary dict=PList_Load(ifile,0); // new object
+	Dictionary dict=Json_Load(ifile,0); // new object
 	if (!dict) quit("Error loading file(%s): %s\n",ifile,OError());
 
 	for(Keyword key=Dictionary_scan(dict);key;key=Dictionary_next(key)) {
@@ -20,12 +20,12 @@ int demo6() {
 		}
 
 	char *ofile="plist6.plist";
-	if (!PList_save(ofile,d1,PLIST_Apple))
+	if (!Json_save(ofile,d1,PLIST_Apple))
 		quit("Error saving file(%s): %s\n",ofile,OError());
 	printf("Saved modified plist to file: %s\n",ofile);
 
 	printf("\n");
-	PList_toStream(stdout,d1,PLIST_Apple | PLIST_NoEncoding | PLIST_NoDoctype);
+	Json_toStream(stdout,d1,PLIST_Apple | PLIST_NoEncoding | PLIST_NoDoctype);
 
 	printf("\n");
 	printf("finish testing\n");

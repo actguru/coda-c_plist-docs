@@ -16,12 +16,13 @@ int demo1() {
 	Dict_take(dd,"Raw data",Data_NewBlock(0,sizeof(raw)-1,raw));
 	Dict_take(dd,"Date",DateString_Value("2024-12-01T01:02:03Z"));
 	Dict_take(dd,"SubDict",newO(Dictionary));
+	Dict_take(dd,"UID",HugeUID_Value(1234));
 
-	PList_toStream(stdout,dd,PLIST_Apple | PLIST_NoEncoding | PLIST_NoDoctype);
+	Json_toStream(stdout,dd,PLIST_Apple | PLIST_NoEncoding | PLIST_NoDoctype);
 	printf("-------------------------------------------------------\n");
 	printf("diagnostic = %s\n",ToContainer(dd)); // ++leak
 	char *file="plist1.plist";
-	if (!PList_save(file,dd,PLIST_Apple))
+	if (!Json_save(file,dd,PLIST_Apple))
 		quit("Error saving file(%s): %s\n",file,OError());
 	printf("Saved file: %s\n",file);
 	return(0);

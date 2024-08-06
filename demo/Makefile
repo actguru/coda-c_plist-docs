@@ -24,14 +24,14 @@ PLISTS = plist1.plist plist5.plist plist6.plist plist7.plist plist8.plist plist9
 $(TESTER): $(CFILES)
 	$(CC) -std=gnu17 -g0 -Wfatal-errors -Wall -O1 $(CFILES) -lcoda-c_plist -o $(TESTER) -lm
 
-runtest: $(TESTER) # manual:  make runtest
+test: $(TESTER)
 	./demo
 
 all: $(TESTER)
 
 clean:
-	rm -f $(OFILES) $(TESTER) $(TESTER).exe # DOS
+	rm -f $(OFILES) $(TESTER) $(TESTER).exe
 	rm -f $(PLISTS)
 
-.PHONY:  all clean runtest default
+.PHONY:  all clean test default
 
