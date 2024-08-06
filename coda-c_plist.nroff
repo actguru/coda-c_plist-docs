@@ -7,19 +7,25 @@
        -----------------------------------------------------------------------
 
 
-       Version 1.0
+       Version 1.2
 
 
-       Files:
+       Files: (payload linux)
 
 
-          coda-c_plist.h       // C Library Header
+          coda-c_plist.h          // C Library Header
 
+          coda-c_strings.h        // Optional String Functions
 
-          coda-c_strings.h     // Optional String Functions
+          libcoda-c_plist.so.1.2  // Dynamic Library
 
+          libcoda-c_plist.so.1    // soname link
 
-          libcoda-c_plist.a    // C Library
+          libcoda-c_plist.so      // linker link
+
+          codalist                   // Command line utility
+
+          codalist.1coda-c        // Utility man page
 
 
        Copyright © 2024  Stephen M. Jones, All rights reserved.
@@ -58,15 +64,29 @@
        system where objects are pointers allocated memory+offset.  The offset
        allows space for Class, Size, and Retain Count.
 
-       When  loading  a plist from a file or block of memory, the (int flags)
-       are reserved for future use and should be set to 0.  After  loading  a
-       plist  the  function PList_lastLoadType(void) can be called to get the
-       type of data loaded: 0 for  codalist,  PLIST_Apple,  or  PLIST_Binary.
-       Loading functions return the new object or NULL for error.
+       After  loading  a  plist  the function PList_lastLoadType(void) can be
+       called to get the type of data loaded: 0 or PLIST_Coda_C for codalist,
+       PLIST_Apple, PLIST_Binary or PLIST_Json.  Loading functions return the
+       new object or NULL for error.
+
+
+       PList Serialization (+JSON)
+
+          Obj Json_Load(char *file,int flags);
+          int4 Json_lastLoadType(void);
+          Obj Json_save(char *file,Obj container,int flags);
+
+          Obj Json_FromBlock(int count,pointer block,int flags);
+          Obj Json_toStream(Obj stream,Obj container,int flags);
+
+       These five functions add JSON support to the "PList" versions,  making
+       this the preferred interface.
 
           enum {
              PLIST_Apple=16,
-             PLIST_Binary=2048,
+             PLIST_Binary=1<<11,
+             PLIST_Json=1<<13,
+             PLIST_Coda_C=1<<10,
              PLIST_UnsortedDict=1,
              PLIST_NL4Leafs=2,
              PLIST_AddComputer=4,
@@ -74,15 +94,22 @@
              PLIST_NoEncoding=32,
              PLIST_NoDoctype=64,
              PLIST_NoPVersion=128,
+             JSON_NoEscapeSlash=512,
+             JSON_Pretty=1<<14,
+             PLIST_Strict=1<<15,
+             PLIST_ObjectStream=4096,
              };
 
-       When  serializing  by  saving  or  streaming  data PLIST_Binary forces
-       binary output, otherwise PLIST_Apple will generate  Apple:XML  format,
-       and  neither set will generate Coda-C:XML format.  The remaining flags
-       just alter the XML output in minor ways,  allowing  easier  comparison
-       with  existing  files.   These  functions  return  0/NULL  for errors,
-       anything else means ok.  Note:   Binary  I/O  requires  an  additional
-       compatible library plugin.
+
+       When  serializing  by saving or streaming data, set one of Apple(XML),
+       Binary, Json, or Coda_C(XML) flags.  Most of the remaining flags  just
+       alter  the  XML  output in minor ways, allowing easier comparison with
+       existing files.  JSON output may be compact or  pretty,  and  with  or
+       without  "/"  escaped  with  "\".   PLIST_Strict  causes  non-standard
+       conversions for <uid>, <data>, <date>,  and  <null>  to  be  disabled.
+       PLIST_ObjectStream   is  described  later  in  this  document.   These
+       functions return 0/NULL for errors, anything  else  means  ok.   Note:
+       Binary I/O requires an additional compatible library plugin.
 
        Error messages may be retrieved with the OError() function.
 
@@ -100,7 +127,6 @@
 
        Note:  Apple  encodes <uid> as a single key(CF$UID) dictionary with an
        <integer>.
-
 
        Creating Objects
 
@@ -126,6 +152,7 @@
 
        Objects  that  require a C-array of values are created with newOC() --
        new object with count.
+
 
        Char or string
 
@@ -154,7 +181,6 @@
           // prototype // Data Data_FromFile(char *path);
           // but may return NULL or error: See: OError().
 
-
        DateString - subclass of Char
 
        Dates are stored as a highly formatted string, with 20 characters.
@@ -182,6 +208,31 @@
           Char color=Os("Green");
 
 
+       Short, Int4
+
+       Short and  Int4  objects  are  used  in  unicode  processing  and  not
+       supported for plists.
+
+          Int4 Int4_Value(int4 value);
+          Short Short_Value(short value);
+
+       FileMem
+
+       FileMem objects are used to process in memory streams.
+
+          FileMem FileMem_Open(Data optional); // create stream
+          Data FileMem_ToData(FileMem self); // convert stream to data
+
+          // example usage: "serializing to memory"
+          cleanO FileMem fff=FileMem_Open(0); if (!fff) return(0); // NEVER
+          if (!Json_toStream(fff,container,flags|PLIST_ObjectStream)) return(0);
+          Data data=FileMem_ToData(fff);
+
+       Note:   Json_toStream()   or  PList_toStream()  both  accept  (FILE*).
+       Setting the flag PLIST_ObjectStream causes the 'stream' to  expect  an
+       'Object Stream".
+
+
        Object Lifetime
 
           void freeO(Obj obj);
@@ -189,16 +240,16 @@
           int countO(Obj obj):
           cleanO // an attribute for variables
 
-       Once you have created an object, at  some  point  you  might  want  to
-       destroy  it  to  prevent memory leaks, this is done with freeO().  All
+       Once  you  have  created  an  object,  at some point you might want to
+       destroy it to prevent memory leaks, this is done  with  freeO().   All
        objects are retain counted so they may be shared throughout a program.
-       To  increase  the  retain  count  just  call keepO(), but each keepO()
-       should be balanced with a freeO().  For diagnostic  purposes  you  can
+       To increase the retain count  just  call  keepO(),  but  each  keepO()
+       should  be  balanced  with a freeO().  For diagnostic purposes you can
        get the retain count with countO(), and unlike Objective-C, this value
        is an accurate value, because there is no garbage collection.
 
-       The 'cleanO' attribute, used with a variable, causes the  variable  to
-       be  freeO()'ed  when  it goes out of scope.  This attribute also makes
+       The  'cleanO'  attribute, used with a variable, causes the variable to
+       be freeO()'ed when it goes out of scope.  This  attribute  also  makes
        the variable 'const' preventing changes.  For example:
 
        {  Bool flag=Bool_Value(1);
@@ -217,8 +268,8 @@
           int  sizeO(Obj obj):
           bool isa_(Obj obj,class-name);
 
-       To get the name of an object use kindO().   To  get  the  size  of  an
-       object  use  sizeO().   Check  an  object's  class  with  isa_(), like
+       To  get  the  name  of  an  object use kindO().  To get the size of an
+       object use  sizeO().   Check  an  object's  class  with  isa_(),  like
        isa_(var,Array).  For example:
 
           Real values=newOC(Real,5);
@@ -228,7 +279,7 @@
 
           // output:  "allocation size of Real[5] is 40" "Yes"
 
-       Note: When using isa_() with (Char), it will report true for  classes:
+       Note:  When using isa_() with (Char), it will report true for classes:
        Char, ConstChar, & DateString.
 
 
@@ -256,14 +307,14 @@
           void Array_toaSet(Array self); // Marks an array as a <Set>
           bool Array_isaSet(Array self); // true if the array has been marked
 
-       When  objects  are  added  to  an Array they are retained by the array
-       unless the word 'take' is in the  function  name.   When  objects  are
-       removed  or  the  Array  is destroyed, they are released with freeO().
-       The function 'removeObject' removes all occurrences of  the  specified
-       object  by  address equality.  The function 'rawAddress' allows direct
-       access to the internal array, but this address  becomes  invalid  with
+       When objects are added to an Array they  are  retained  by  the  array
+       unless  the  word  'take'  is  in the function name.  When objects are
+       removed or the Array is destroyed, they  are  released  with  freeO().
+       The  function  'removeObject' removes all occurrences of the specified
+       object by address equality.  The function 'rawAddress'  allows  direct
+       access  to  the  internal array, but this address becomes invalid with
        any Array modification.  When creating a new Array with 'NewBlock' the
-       'proto' should be 0 (reserved for future use).  The function  'subInt'
+       'proto'  should be 0 (reserved for future use).  The function 'subInt'
        returns NULL for out-of-bounds.
 
 
@@ -273,8 +324,8 @@
           void pointer_sort(pointer base,int nel,void *IfunVVC,void *context);
           // ex: pointer_sort(list,Pointer_count(list),strcmp,0);
 
-       Pointer  class  objects are used for programming support.  For example
-       Dictionary_AllKeys() returns a C-arrayed list of  pointers,  that  can
+       Pointer class objects are used for programming support.   For  example
+       Dictionary_AllKeys()  returns  a  C-arrayed list of pointers, that can
        easily be sorted.
 
        Keyword
@@ -282,7 +333,7 @@
           struct Keyword_ { Obj item; char word[0]; };
           Keyword Keyword_Value(char *word,Obj item);
 
-       The  Keyword  class  exposes it's internal structure because it may be
+       The Keyword class exposes it's internal structure because  it  may  be
        used to create Keyword objects or access internal Dictionary elements,
        that are not objects!
 
@@ -303,8 +354,8 @@
              printf("Key=%s, item=%p\n",key->word,key->item);
              }
 
-       The  Dictionary class objects are referenced by a key string, which is
-       copied into the dictionary.  This class follows  the  same  rules  for
+       The Dictionary class objects are referenced by a key string, which  is
+       copied  into  the  dictionary.   This class follows the same rules for
        retain retaining contained objects as Array.
 
 
@@ -314,8 +365,8 @@
 
           Obj alocO(int size);
 
-       Void  class objects are 'classless' objects, they allow arbitrary data
-       to work as objects, so they can be contained in Dictionary and  Array.
+       Void class objects are 'classless' objects, they allow arbitrary  data
+       to  work as objects, so they can be contained in Dictionary and Array.
        They are created with alocO().
 
 
@@ -332,34 +383,37 @@
              // A new object from a string or NULL w/ OError().
              // The new objects will have the same class as 'cobj'.
 
-       Each  Coda-C  class  has a class object named: Class_(class name) like
-       Class_Real.  These are not functional objects, but can be  used  where
-       only   the   class   of   an   object  is  required,  like  'cobj'  in
+          Void JsonNull_Value(void); // create a Dictionary placeholder for "null"
+          bool isa_JsonNull(Obj obj); // check for placeholder
+
+       Each Coda-C class has a class object named:  Class_(class  name)  like
+       Class_Real.   These  are not functional objects, but can be used where
+       only  the  class  of  an  object   is   required,   like   'cobj'   in
        obj_FromString().
 
           void PList_Binary(void); // Forward ref to Binary plist plugin library
 
        The function PList_Binary() is not defined in this library, but if you
-       have  a Binary plugin, calling or referencing it will cause the linker
+       have a Binary plugin, calling or referencing it will cause the  linker
        to include the plugin.
 
-       Diagnostics
+           enum { UTF8max=0x10FFFF, }; // used as encoding for JSON \u0000 (null)
+           #define sizeat(type) sizeof(*((type)0)) // sizeof pointer type!
 
-          Char ToContainer(Obj container); // return a new Char string with readable version of an 'object'
+       Diagnostics
+          Char ToContainer(Obj container); // readable version of an 'object'
           void codac_versions(void); // report version information to <stdout>
           #define Object_Leaks() ... // macro for leak testing
 
-       The ToContainer() function tries to make a human readable string  from
-       an  object,  mostly  for programming purposes.  It is most useful with
+       The  ToContainer() function tries to make a human readable string from
+       an object, mostly for programming purposes.  It is  most  useful  with
        containers.
 
-       When the Object_Leaks() macro is inserted in a function, it creates  a
-       variable  on that line, that when it goes out of scope will report the
-       change in total object count. This process is not perfect, but it  can
+       When  the Object_Leaks() macro is inserted in a function, it creates a
+       variable on that line, that when it goes out of scope will report  the
+       change  in total object count. This process is not perfect, but it can
        help to hunt down leaking objects.  For example:
-
           #include "coda-c_plist.h"
-          #include <stdio.h>
           int main() {
              Huge ival=0; ival=newO(Huge); // unreported leak
              Object_Leaks();
@@ -397,5 +451,20 @@
           4. <uid> has a native format.
           5. <set> is supported by naming an array.
           6. <keyword> is supported and may be used to preserve container names.
+
+       Special Encodings
+
+       Special  encodings  are used for unsupported types unless PLIST_Strict
+       is set.
+
+       JSON:
+
+       <data>   is encoded as  { "CF$Data" : "BASE64 data..." }.
+       <uid> is encoded as  { "CF$UID" : ival }.
+       <date>   is encoded as  { "CF$Date" : "YYYY-MM-DDThh:mm:ssZ" }.
+
+       Apple XML:
+
+       <null>   is encoded as  { "CF$Null" : true }.
 
 
