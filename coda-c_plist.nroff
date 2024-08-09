@@ -7,7 +7,7 @@
        -----------------------------------------------------------------------
 
 
-       Version 1.2
+       Version 1.3
 
 
        Files: (payload linux)
@@ -17,7 +17,7 @@
 
           coda-c_strings.h        // Optional String Functions
 
-          libcoda-c_plist.so.1.2  // Dynamic Library
+          libcoda-c_plist.so.1.3  // Dynamic Library
 
           libcoda-c_plist.so.1    // soname link
 
@@ -83,21 +83,23 @@
        this the preferred interface.
 
           enum {
-             PLIST_Apple=16,
-             PLIST_Binary=1<<11,
-             PLIST_Json=1<<13,
-             PLIST_Coda_C=1<<10,
-             PLIST_UnsortedDict=1,
-             PLIST_NL4Leafs=2,
-             PLIST_AddComputer=4,
-             PLIST_Amp38=8,
-             PLIST_NoEncoding=32,
-             PLIST_NoDoctype=64,
-             PLIST_NoPVersion=128,
-             JSON_NoEscapeSlash=512,
-             JSON_Pretty=1<<14,
-             PLIST_Strict=1<<15,
-             PLIST_ObjectStream=4096,
+             PLIST_Apple=16,         // FORMAT
+             PLIST_Binary=1<<11,     // FORMAT
+             PLIST_Json=1<<13,       // FORMAT
+             PLIST_Coda_C=1<<10,     // FORMAT
+             PLIST_UnsortedDict=1,   // Dictionary sorting
+             PLIST_NL4Leafs=2,       // add more white
+             PLIST_AddComputer=4,    // goofy "Computer" in xml headers
+             PLIST_Amp38=8,          // &#38; instead of &amp;
+             PLIST_NoEncoding=32,    // drop 1st xml header line
+             PLIST_NoDoctype=64,     // drop 2nd xml header line
+             PLIST_NoPVersion=128,   // just <plist>
+             JSON_NoEscapeSlash=512, // don't \/
+             JSON_Pretty=1<<14,      // add white space
+             PLIST_Strict=1<<15,     // disable non-standard encodings
+             PLIST_ObjectStream=4096,// PROGRAMMING OPTION
+             Binary_MaxComp=1<<30,   // unique all leafs
+             Binary_NoComp=1<<31,    // don't unique/compress output
              };
 
 
@@ -439,6 +441,8 @@
           #define Dictionary_count Dictionary_get_count
           #define Root_count Root_get_count
           #define Pointer_count Root_get_count // get the number of pointers
+          #define Int4_count Root_get_count
+          #define Short_count Root_get_count
 
        XML Formats: plist vs codalist
 
