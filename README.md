@@ -1,7 +1,7 @@
 
 # Coda-C_PList-Docs
 
-# Documentation for:  coda-c_plist 1.0
+# Documentation for:  coda-c_plist
 
 ## ⭐️ The Coda-C Property List Library ⭐️
 
