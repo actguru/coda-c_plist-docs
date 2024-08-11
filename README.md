@@ -22,7 +22,7 @@ Makefiles are provided to compile the examples.
 
 ## 🟣 Links
 
-* Documentation:  [Source](https://github.com/actguru/coda-c_plist)
+* C Source:  [Source](https://github.com/actguru/coda-c_plist)
 * Homepage:  [Coda-C](https://coda-c.com/)
 
 ## 🟠 Release notes:
