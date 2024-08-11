@@ -7,7 +7,7 @@
        -----------------------------------------------------------------------
 
 
-       Version 1.3
+       Version 1.3  (2024-08-11)
 
 
        Files: (payload linux)
@@ -429,6 +429,18 @@
           // Reports: ">>> Leaks: 1 (end scope main:5)"
 
 
+       Defering a function call
+
+          #define defer_call(function,pointer) ...
+
+          // Examples:
+          defer_call(fclose,stream);
+          defer_call(free,storge);
+          defer_call(puts,"a message");
+
+       A   defer_call()   works   like   Object_Leaks()   and    calls    the
+       function(pointer) at scope end.
+
        Short hand defines
 
        // short hand for common functions and Dictionary
@@ -458,7 +470,7 @@
 
        Special Encodings
 
-       Special  encodings  are used for unsupported types unless PLIST_Strict
+       Special encodings are used for unsupported types  unless  PLIST_Strict
        is set.
 
        JSON:
